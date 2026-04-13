@@ -1,0 +1,9 @@
+{
+  "name": "cpu-ray-tracer",
+  "version": "0.1.0",
+  "dependencies": [
+    "glfw3",
+    "glm",
+    "glad"
+  ]
+}
