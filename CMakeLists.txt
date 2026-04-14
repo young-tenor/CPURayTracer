@@ -12,6 +12,15 @@ find_package(glad CONFIG REQUIRED)
 
 add_executable(CPURayTracer
     src/main.cpp
+    src/graphics/shader.h
+    src/shaders/quad.vert
+    src/shaders/quad.frag
+)
+
+target_include_directories(CPURayTracer PRIVATE src)
+
+target_compile_definitions(CPURayTracer PRIVATE
+    SHADER_DIR="${CMAKE_CURRENT_SOURCE_DIR}/src/shaders/"
 )
 
 target_link_libraries(CPURayTracer PRIVATE
