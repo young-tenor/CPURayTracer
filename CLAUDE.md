@@ -45,6 +45,6 @@ The project renders ray-traced images on the CPU, then displays the result via O
 ### Coding style
 
 - Follow the naming and code structure style of the two reference books.
-- Globals/constants: `kCamelCase` (e.g., `kWindowWidth`).
+- Naming: camelCase throughout, no prefixes (e.g., `windowWidth`, `framebufferSizeCallback`). GLSL: `texCoord`, `fragColor`, `pos`.
 - GLFW callbacks must be free functions (no lambdas with captures as C callbacks).
 - Include order: platform/GL headers first (`glad` before `GLFW`), then standard library.
