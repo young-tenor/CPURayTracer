@@ -3,10 +3,13 @@
 
 #include "graphics/shader.h"
 #include "graphics/ray.h"
+#include "scene/object.h"
 #include "scene/sphere.h"
 
 #include <glm/glm.hpp>
 #include <iostream>
+#include <limits>
+#include <memory>
 #include <vector>
 
 static constexpr int width  = 1280;
@@ -73,26 +76,44 @@ int main()
 
     // Orthogonal projection — one ray per pixel center, direction along -z
     float aspectRatio = static_cast<float>(width) / static_cast<float>(height);
-    Sphere sphere(glm::vec3(0.0f, 0.0f, -1.0f), 0.5f);
+    glm::vec3 cameraCenter(0.0f, 0.0f, 1.0f);
+    std::vector<std::unique_ptr<Object>> objects;
+    objects.push_back(std::make_unique<Sphere>(glm::vec3(-0.4f, 0.0f, -0.5f), 0.5f));
+    objects.push_back(std::make_unique<Sphere>(glm::vec3( 0.4f, 0.0f, -1.0f), 0.5f));
 
     for (int j = 0; j < height; j++)
     {
         for (int i = 0; i < width; i++)
         {
-            glm::vec2 pixelCenter = glm::vec2(
+            glm::vec3 pixelCenter(
                 (2.0f * (i + 0.5f) / static_cast<float>(width)  - 1.0f) * aspectRatio,
-                (2.0f * (j + 0.5f) / static_cast<float>(height) - 1.0f)
+                (2.0f * (j + 0.5f) / static_cast<float>(height) - 1.0f),
+                0.0f
             );
 
             Ray ray;
-            ray.orig = glm::vec3(pixelCenter.x, pixelCenter.y, 0.0f);
-            ray.dir  = glm::vec3(0.0f, 0.0f, -1.0f);
+            ray.orig = cameraCenter;
+            ray.dir  = glm::normalize(pixelCenter - cameraCenter);
             ray.dist = 0.0f;
 
             Hit hit;
-            if (sphere.intersect(ray, hit))
+            bool hitAnything = false;
+            auto closestDist = std::numeric_limits<float>::infinity();
+
+            for (const auto& object : objects)
             {
-                glm::vec3 color = 0.5f * (hit.normal + glm::vec3(1.0f));
+                Hit tempHit;
+                if (object->intersect(ray, tempHit) && tempHit.dist < closestDist)
+                {
+                    closestDist = tempHit.dist;
+                    hit = tempHit;
+                    hitAnything = true;
+                }
+            }
+
+            if (hitAnything)
+            {
+                auto color = 0.5f * (hit.normal + glm::vec3(1.0f));
                 pixels[j * width + i] = glm::vec4(color, 1.0f);
             }
             else

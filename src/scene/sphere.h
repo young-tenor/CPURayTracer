@@ -21,6 +21,7 @@ public:
             return false;
         float t = (-b - glm::sqrt(discriminant)) / a;
         ray.dist = t;
+        hit.dist   = t;
         hit.normal = glm::normalize(ray.orig + t * ray.dir - center);
         return true;
     }
