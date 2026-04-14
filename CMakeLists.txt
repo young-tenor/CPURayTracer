@@ -18,6 +18,8 @@ add_executable(CPURayTracer
     src/graphics/hit.h
     src/scene/object.h
     src/scene/sphere.h
+    src/scene/triangle.h
+    src/scene/rectangle.h
     src/scene/light.h
     src/shaders/quad.vert
     src/shaders/quad.frag

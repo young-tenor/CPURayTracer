@@ -5,6 +5,8 @@
 #include "graphics/ray.h"
 #include "scene/object.h"
 #include "scene/sphere.h"
+#include "scene/triangle.h"
+#include "scene/rectangle.h"
 #include "scene/light.h"
 
 #include <glm/glm.hpp>
@@ -81,13 +83,24 @@ int main()
     Light light(glm::vec3(0.0f, 1.0f, 1.0f), 1.0f);
 
     std::vector<std::unique_ptr<Object>> objects;
-    Material sphereMat(
+
+    Material material(
         glm::vec3(0.1f, 0.1f, 0.1f),
         glm::vec3(0.7f, 0.7f, 0.7f),
         glm::vec3(0.5f, 0.5f, 0.5f),
         32.0f
     );
-    objects.push_back(std::make_unique<Sphere>(glm::vec3(0.0f, 0.0f, -0.5f), 0.5f, sphereMat));
+
+    objects.push_back(std::make_unique<Sphere>(glm::vec3(0.0f, 0.0f, -0.5f), 0.5f, material));
+
+    // Floor at y = -0.5 (sphere bottom tangent), spanning the visible scene area
+    objects.push_back(std::make_unique<Rectangle>(
+        glm::vec3(-3.0f, -0.5f,  2.0f),
+        glm::vec3( 3.0f, -0.5f,  2.0f),
+        glm::vec3( 3.0f, -0.5f, -3.0f),
+        glm::vec3(-3.0f, -0.5f, -3.0f),
+        material
+    ));
 
     for (int j = 0; j < height; j++)
     {
