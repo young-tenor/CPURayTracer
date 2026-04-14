@@ -94,7 +94,6 @@ int main()
             Ray ray;
             ray.orig = cameraCenter;
             ray.dir  = glm::normalize(pixelCenter - cameraCenter);
-            ray.dist = 0.0f;
 
             Hit hit;
             bool hitAnything = false;
