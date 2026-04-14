@@ -5,6 +5,7 @@
 #include "graphics/ray.h"
 #include "scene/object.h"
 #include "scene/sphere.h"
+#include "scene/light.h"
 
 #include <glm/glm.hpp>
 #include <iostream>
@@ -77,48 +78,70 @@ int main()
     // Orthogonal projection — one ray per pixel center, direction along -z
     float aspectRatio = static_cast<float>(width) / static_cast<float>(height);
     glm::vec3 cameraCenter(0.0f, 0.0f, 1.0f);
+    Light light(glm::vec3(0.0f, 1.0f, 1.0f), 1.0f);
+
     std::vector<std::unique_ptr<Object>> objects;
-    objects.push_back(std::make_unique<Sphere>(glm::vec3(-0.4f, 0.0f, -0.5f), 0.5f));
-    objects.push_back(std::make_unique<Sphere>(glm::vec3( 0.4f, 0.0f, -1.0f), 0.5f));
+    Material sphereMat(
+        glm::vec3(0.1f, 0.1f, 0.1f),
+        glm::vec3(0.7f, 0.7f, 0.7f),
+        glm::vec3(0.5f, 0.5f, 0.5f),
+        32.0f
+    );
+    objects.push_back(std::make_unique<Sphere>(glm::vec3(0.0f, 0.0f, -0.5f), 0.5f, sphereMat));
 
     for (int j = 0; j < height; j++)
     {
         for (int i = 0; i < width; i++)
         {
-            glm::vec3 pixelCenter(
-                (2.0f * (i + 0.5f) / static_cast<float>(width)  - 1.0f) * aspectRatio,
-                (2.0f * (j + 0.5f) / static_cast<float>(height) - 1.0f),
-                0.0f
-            );
+            glm::vec4 accum(0.0f);
 
-            Ray ray;
-            ray.orig = cameraCenter;
-            ray.dir  = glm::normalize(pixelCenter - cameraCenter);
-
-            Hit hit;
-            bool hitAnything = false;
-            auto closestDist = std::numeric_limits<float>::infinity();
-
-            for (const auto& object : objects)
+            for (int sj = 0; sj < 2; sj++)
             {
-                Hit tempHit;
-                if (object->intersect(ray, tempHit) && tempHit.dist < closestDist)
+                for (int si = 0; si < 2; si++)
                 {
-                    closestDist = tempHit.dist;
-                    hit = tempHit;
-                    hitAnything = true;
+                    glm::vec3 sampleCenter(
+                        (2.0f * (i + (si + 0.5f) * 0.5f) / static_cast<float>(width)  - 1.0f) * aspectRatio,
+                        (2.0f * (j + (sj + 0.5f) * 0.5f) / static_cast<float>(height) - 1.0f),
+                        0.0f
+                    );
+
+                    Ray ray;
+                    ray.orig = cameraCenter;
+                    ray.dir  = glm::normalize(sampleCenter - cameraCenter);
+
+                    Hit hit;
+                    bool hitAnything = false;
+                    auto closestDist = std::numeric_limits<float>::infinity();
+
+                    for (const auto& object : objects)
+                    {
+                        Hit tempHit;
+                        if (object->intersect(ray, tempHit) && tempHit.dist < closestDist)
+                        {
+                            closestDist = tempHit.dist;
+                            hit = tempHit;
+                            hitAnything = true;
+                        }
+                    }
+
+                    if (hitAnything)
+                    {
+                        auto hitPoint = ray.orig + hit.dist * ray.dir;
+                        auto N = hit.normal;
+                        auto L = glm::normalize(light.pos - hitPoint);
+                        auto V = glm::normalize(cameraCenter - hitPoint);
+                        auto H = glm::normalize(L + V);
+
+                        auto ambient  = hit.material.ambient;
+                        auto diffuse  = hit.material.diffuse  * light.strength * glm::max(glm::dot(N, L), 0.0f);
+                        auto specular = hit.material.specular * light.strength * glm::pow(glm::max(glm::dot(N, H), 0.0f), hit.material.shininess);
+
+                        accum += glm::vec4(ambient + diffuse + specular, 1.0f);
+                    }
                 }
             }
 
-            if (hitAnything)
-            {
-                auto color = 0.5f * (hit.normal + glm::vec3(1.0f));
-                pixels[j * width + i] = glm::vec4(color, 1.0f);
-            }
-            else
-            {
-                pixels[j * width + i] = glm::vec4(0.0f, 0.0f, 0.0f, 1.0f);
-            }
+            pixels[j * width + i] = accum * 0.25f;
         }
     }
 

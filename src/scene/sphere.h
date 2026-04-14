@@ -8,7 +8,8 @@ public:
     glm::vec3 center;
     float radius;
 
-    Sphere(glm::vec3 center, float radius) : center(center), radius(radius) {}
+    Sphere(glm::vec3 center, float radius, Material material)
+        : Object(material), center(center), radius(radius) {}
 
     // https://en.wikipedia.org/wiki/Line-sphere_intersection
     bool intersect(Ray& ray, Hit& hit) override {
@@ -22,6 +23,7 @@ public:
         float t = (-b - glm::sqrt(discriminant)) / a;
         hit.dist = t;
         hit.normal = glm::normalize(ray.orig + t * ray.dir - center);
+        hit.material = material;
         return true;
     }
 };
