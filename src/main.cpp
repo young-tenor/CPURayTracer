@@ -80,7 +80,7 @@ int main()
     // Orthogonal projection — one ray per pixel center, direction along -z
     float aspectRatio = static_cast<float>(width) / static_cast<float>(height);
     glm::vec3 cameraCenter(0.0f, 0.0f, 1.0f);
-    Light light(glm::vec3(0.0f, 1.0f, 1.0f), 1.0f);
+    Light light(glm::vec3(1.0f, 1.0f, 0.0f), 1.0f);
 
     std::vector<std::unique_ptr<Object>> objects;
 
@@ -145,11 +145,31 @@ int main()
                         auto V = glm::normalize(cameraCenter - hitPoint);
                         auto H = glm::normalize(L + V);
 
-                        auto ambient  = hit.material.ambient;
-                        auto diffuse  = hit.material.diffuse  * light.strength * glm::max(glm::dot(N, L), 0.0f);
-                        auto specular = hit.material.specular * light.strength * glm::pow(glm::max(glm::dot(N, H), 0.0f), hit.material.shininess);
+                        // Shadow ray: from hit point toward the light
+                        Ray shadowRay;
+                        shadowRay.orig = hitPoint + N * 1e-4f;
+                        shadowRay.dir = L;
+                        float lightDist = glm::length(light.pos - hitPoint);
+                        bool inShadow = false;
+                        for (const auto& object : objects)
+                        {
+                            Hit shadowHit;
+                            if (object->intersect(shadowRay, shadowHit) && shadowHit.dist < lightDist)
+                            {
+                                inShadow = true;
+                                break;
+                            }
+                        }
 
-                        accum += glm::vec4(ambient + diffuse + specular, 1.0f);
+                        auto ambient = hit.material.ambient;
+                        glm::vec3 color = ambient;
+                        if (!inShadow)
+                        {
+                            auto diffuse = hit.material.diffuse * light.strength * glm::max(glm::dot(N, L), 0.0f);
+                            auto specular = hit.material.specular * light.strength * glm::pow(glm::max(glm::dot(N, H), 0.0f), hit.material.shininess);
+                            color += diffuse + specular;
+                        }
+                        accum += glm::vec4(color, 1.0f);
                     }
                 }
             }

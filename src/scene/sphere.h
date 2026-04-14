@@ -21,6 +21,8 @@ public:
         if (discriminant < 0.0f)
             return false;
         float t = (-b - glm::sqrt(discriminant)) / a;
+        if (t < 0.0f)
+            return false;
         hit.dist = t;
         hit.normal = glm::normalize(ray.orig + t * ray.dir - center);
         hit.material = material;
