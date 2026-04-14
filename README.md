@@ -19,9 +19,9 @@ CPU ray tracer with OpenGL display, based on [Ray Tracing in One Weekend](https:
 
 ```bash
 cmake --preset windows-msvc
-cmake --build build --config Debug
+cmake --build --preset windows-msvc-release
 ```
 
-Binary: `build/Debug/CPURayTracer.exe`
+Binary: `build/Release/CPURayTracer.exe`
 
 Press **Escape** to close.

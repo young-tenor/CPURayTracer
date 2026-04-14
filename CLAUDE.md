@@ -16,14 +16,14 @@ vcpkg manifest mode auto-installs dependencies on first configure.
 # Configure (installs glfw3, glm, glad via vcpkg automatically)
 cmake --preset windows-msvc
 
-# Build Debug
-cmake --build build --config Debug
-
 # Build Release
-cmake --build build --config Release
+cmake --build --preset windows-msvc-release
+
+# Build Debug
+cmake --build --preset windows-msvc-debug
 ```
 
-Run the binary from `build/Debug/CPURayTracer.exe` or `build/Release/CPURayTracer.exe`.
+Run the binary from `build/Release/CPURayTracer.exe` or `build/Debug/CPURayTracer.exe`.
 
 Press **Escape** to close the window.
 
