@@ -49,3 +49,4 @@ The project renders ray-traced images on the CPU, then displays the result via O
 - GLFW callbacks must be free functions (no lambdas with captures as C callbacks).
 - Include order: platform/GL headers first (`glad` before `GLFW`), then standard library.
 - Use `auto` when the type is long (e.g., `unique_ptr`, iterator types), when it aids maintainability, or when the type is obvious from the right-hand side. Don't force it where the explicit type is clearer.
+- Do not add alignment whitespace (extra spaces to align columns across lines). It creates maintenance burden and adds unnecessary tokens.

@@ -28,9 +28,9 @@ public:
 
         // Step 2: check if the hit point is inside the triangle
         glm::vec3 P = ray.orig + t * ray.dir;
-        if (glm::dot(N, glm::cross(e1,      P - v0)) < 0.0f) return false;
+        if (glm::dot(N, glm::cross(e1, P - v0)) < 0.0f) return false;
         if (glm::dot(N, glm::cross(v2 - v1, P - v1)) < 0.0f) return false;
-        if (glm::dot(N, glm::cross(-e2,     P - v2)) < 0.0f) return false;
+        if (glm::dot(N, glm::cross(-e2, P - v2)) < 0.0f) return false;
 
         hit.dist = t;
         hit.normal = glm::normalize(N);

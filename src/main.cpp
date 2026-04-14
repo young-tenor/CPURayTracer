@@ -95,9 +95,9 @@ int main()
 
     // Floor at y = -0.5 (sphere bottom tangent), spanning the visible scene area
     objects.push_back(std::make_unique<Rectangle>(
-        glm::vec3(-3.0f, -0.5f,  2.0f),
-        glm::vec3( 3.0f, -0.5f,  2.0f),
-        glm::vec3( 3.0f, -0.5f, -3.0f),
+        glm::vec3(-3.0f, -0.5f, 2.0f),
+        glm::vec3(3.0f, -0.5f, 2.0f),
+        glm::vec3(3.0f, -0.5f, -3.0f),
         glm::vec3(-3.0f, -0.5f, -3.0f),
         material
     ));
@@ -113,7 +113,7 @@ int main()
                 for (int si = 0; si < 2; si++)
                 {
                     glm::vec3 sampleCenter(
-                        (2.0f * (i + (si + 0.5f) * 0.5f) / static_cast<float>(width)  - 1.0f) * aspectRatio,
+                        (2.0f * (i + (si + 0.5f) * 0.5f) / static_cast<float>(width) - 1.0f) * aspectRatio,
                         (2.0f * (j + (sj + 0.5f) * 0.5f) / static_cast<float>(height) - 1.0f),
                         0.0f
                     );
