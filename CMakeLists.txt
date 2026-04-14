@@ -13,6 +13,10 @@ find_package(glad CONFIG REQUIRED)
 add_executable(CPURayTracer
     src/main.cpp
     src/graphics/shader.h
+    src/graphics/ray.h
+    src/graphics/hit.h
+    src/scene/object.h
+    src/scene/sphere.h
     src/shaders/quad.vert
     src/shaders/quad.frag
 )

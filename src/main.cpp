@@ -2,6 +2,8 @@
 #include <GLFW/glfw3.h>
 
 #include "graphics/shader.h"
+#include "graphics/ray.h"
+#include "scene/sphere.h"
 
 #include <glm/glm.hpp>
 #include <iostream>
@@ -12,12 +14,13 @@ static constexpr int height = 720;
 static constexpr const char* title = "CPU Ray Tracer";
 
 static constexpr float quadVertices[] = {
-    -1.0f,  1.0f,
-    -1.0f, -1.0f,
-     1.0f, -1.0f,
-    -1.0f,  1.0f,
-     1.0f, -1.0f,
-     1.0f,  1.0f,
+    // pos          // texCoord
+    -1.0f,  1.0f,  0.0f, 1.0f,
+    -1.0f, -1.0f,  0.0f, 0.0f,
+     1.0f, -1.0f,  1.0f, 0.0f,
+    -1.0f,  1.0f,  0.0f, 1.0f,
+     1.0f, -1.0f,  1.0f, 0.0f,
+     1.0f,  1.0f,  1.0f, 1.0f,
 };
 
 static void framebufferSizeCallback(GLFWwindow* /*window*/, int width, int height)
@@ -66,7 +69,36 @@ int main()
     glViewport(0, 0, width, height);
 
     // CPU pixel buffer — ray tracer writes here
-    std::vector<glm::vec4> pixels(width * height, glm::vec4(0.2f, 0.3f, 0.3f, 1.0f));
+    std::vector<glm::vec4> pixels(width * height);
+
+    // Orthogonal projection — one ray per pixel center, direction along -z
+    float aspectRatio = static_cast<float>(width) / static_cast<float>(height);
+    Sphere sphere(glm::vec3(0.0f, 0.0f, -1.0f), 0.5f);
+
+    for (int j = 0; j < height; j++)
+    {
+        for (int i = 0; i < width; i++)
+        {
+            float u = (i + 0.5f) / static_cast<float>(width);
+            float v = (j + 0.5f) / static_cast<float>(height);
+
+            Ray ray;
+            ray.orig = glm::vec3((2.0f * u - 1.0f) * aspectRatio, 2.0f * v - 1.0f, 0.0f);
+            ray.dir  = glm::vec3(0.0f, 0.0f, -1.0f);
+            ray.dist = 0.0f;
+
+            Hit hit;
+            if (sphere.intersect(ray, hit))
+            {
+                glm::vec3 color = 0.5f * (hit.normal + glm::vec3(1.0f));
+                pixels[j * width + i] = glm::vec4(color, 1.0f);
+            }
+            else
+            {
+                pixels[j * width + i] = glm::vec4(0.0f, 0.0f, 0.0f, 1.0f);
+            }
+        }
+    }
 
     unsigned int texture;
     glGenTextures(1, &texture);
@@ -87,8 +119,10 @@ int main()
     glBindVertexArray(vao);
     glBindBuffer(GL_ARRAY_BUFFER, vbo);
     glBufferData(GL_ARRAY_BUFFER, sizeof(quadVertices), quadVertices, GL_STATIC_DRAW);
-    glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 2 * sizeof(float), nullptr);
+    glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 4 * sizeof(float), nullptr);
     glEnableVertexAttribArray(0);
+    glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 4 * sizeof(float), reinterpret_cast<void*>(2 * sizeof(float)));
+    glEnableVertexAttribArray(1);
     glBindVertexArray(0);
 
     while (!glfwWindowShouldClose(window))
