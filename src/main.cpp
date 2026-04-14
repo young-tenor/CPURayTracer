@@ -79,11 +79,13 @@ int main()
     {
         for (int i = 0; i < width; i++)
         {
-            float u = (i + 0.5f) / static_cast<float>(width);
-            float v = (j + 0.5f) / static_cast<float>(height);
+            glm::vec2 pixelCenter = glm::vec2(
+                (2.0f * (i + 0.5f) / static_cast<float>(width)  - 1.0f) * aspectRatio,
+                (2.0f * (j + 0.5f) / static_cast<float>(height) - 1.0f)
+            );
 
             Ray ray;
-            ray.orig = glm::vec3((2.0f * u - 1.0f) * aspectRatio, 2.0f * v - 1.0f, 0.0f);
+            ray.orig = glm::vec3(pixelCenter.x, pixelCenter.y, 0.0f);
             ray.dir  = glm::vec3(0.0f, 0.0f, -1.0f);
             ray.dist = 0.0f;
 
