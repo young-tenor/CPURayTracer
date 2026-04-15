@@ -12,8 +12,8 @@ public:
 
     Rectangle(glm::vec3 v0, glm::vec3 v1, glm::vec3 v2, glm::vec3 v3, Material material)
         : Object(material),
-          t0(v0, v1, v2, material),
-          t1(v0, v2, v3, material) {}
+          t0(v0, v1, v2, {0,0}, {1,0}, {1,1}, material),
+          t1(v0, v2, v3, {0,0}, {1,1}, {0,1}, material) {}
 
     bool intersect(const Ray& ray, Hit& hit) override {
         Hit h0, h1;

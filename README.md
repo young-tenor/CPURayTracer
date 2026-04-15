@@ -14,6 +14,7 @@ CPU ray tracer with OpenGL display, based on [Ray Tracing in One Weekend](https:
 - glfw3
 - glm
 - glad (OpenGL 3.3 Core)
+- stb (stb_image)
 
 ## Build
 

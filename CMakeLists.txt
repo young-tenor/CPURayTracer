@@ -9,10 +9,14 @@ find_package(OpenGL REQUIRED)
 find_package(glfw3 CONFIG REQUIRED)
 find_package(glm CONFIG REQUIRED)
 find_package(glad CONFIG REQUIRED)
+find_package(Stb REQUIRED)
 
 add_executable(CPURayTracer
     src/main.cpp
+    src/app.h
     src/graphics/shader.h
+    src/graphics/sampler.h
+    src/graphics/texture.h
     src/graphics/material.h
     src/graphics/ray.h
     src/graphics/hit.h
@@ -25,7 +29,7 @@ add_executable(CPURayTracer
     src/shaders/quad.frag
 )
 
-target_include_directories(CPURayTracer PRIVATE src)
+target_include_directories(CPURayTracer PRIVATE src ${Stb_INCLUDE_DIR})
 
 target_compile_definitions(CPURayTracer PRIVATE
     SHADER_DIR="${CMAKE_CURRENT_SOURCE_DIR}/src/shaders/"
