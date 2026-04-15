@@ -28,6 +28,80 @@ static const float quadVertices[] = {
     1.0f, 1.0f, 1.0f, 1.0f,
 };
 
+static glm::vec3 traceRay(const Ray& ray, const glm::vec3& cameraCenter, const Light& light, const std::vector<std::unique_ptr<Object>>& objects)
+{
+    Hit hit;
+    bool hitAnything = false;
+    auto closestDist = std::numeric_limits<float>::infinity();
+
+    for (const auto& object : objects)
+    {
+        Hit tempHit;
+        if (object->intersect(ray, tempHit) && tempHit.dist < closestDist)
+        {
+            closestDist = tempHit.dist;
+            hit = tempHit;
+            hitAnything = true;
+        }
+    }
+
+    if (!hitAnything)
+        return glm::vec3(0.0f);
+
+    auto hitPoint = ray.orig + hit.dist * ray.dir;
+    auto N = hit.normal;
+    auto L = glm::normalize(light.pos - hitPoint);
+    auto V = glm::normalize(cameraCenter - hitPoint);
+    auto H = glm::normalize(L + V);
+
+    Ray shadowRay;
+    shadowRay.orig = hitPoint + N * 1e-4f;
+    shadowRay.dir = L;
+    float lightDist = glm::length(light.pos - hitPoint);
+    bool inShadow = false;
+    for (const auto& object : objects)
+    {
+        Hit shadowHit;
+        if (object->intersect(shadowRay, shadowHit) && shadowHit.dist < lightDist)
+        {
+            inShadow = true;
+            break;
+        }
+    }
+
+    glm::vec3 color = hit.material.ambient;
+    if (!inShadow)
+    {
+        auto diffuse = hit.material.diffuse * light.strength * glm::max(glm::dot(N, L), 0.0f);
+        auto specular = hit.material.specular * light.strength * glm::pow(glm::max(glm::dot(N, H), 0.0f), hit.material.shininess);
+        color += diffuse + specular;
+    }
+    return color;
+}
+
+static glm::vec3 samplePixel(int i, int j, int width, int height, float aspectRatio, const glm::vec3& cameraCenter, const Light& light, const std::vector<std::unique_ptr<Object>>& objects)
+{
+    glm::vec3 accum(0.0f);
+    for (int sj = 0; sj < 2; sj++)
+    {
+        for (int si = 0; si < 2; si++)
+        {
+            glm::vec3 sampleCenter(
+                (2.0f * (i + (si + 0.5f) * 0.5f) / static_cast<float>(width) - 1.0f) * aspectRatio,
+                (2.0f * (j + (sj + 0.5f) * 0.5f) / static_cast<float>(height) - 1.0f),
+                0.0f
+            );
+
+            Ray ray;
+            ray.orig = cameraCenter;
+            ray.dir = glm::normalize(sampleCenter - cameraCenter);
+
+            accum += traceRay(ray, cameraCenter, light, objects);
+        }
+    }
+    return accum * 0.25f;
+}
+
 static void framebufferSizeCallback(GLFWwindow* /*window*/, int width, int height)
 {
     glViewport(0, 0, width, height);
@@ -105,75 +179,8 @@ int main()
     {
         for (int i = 0; i < width; i++)
         {
-            glm::vec4 accum(0.0f);
-
-            for (int sj = 0; sj < 2; sj++)
-            {
-                for (int si = 0; si < 2; si++)
-                {
-                    glm::vec3 sampleCenter(
-                        (2.0f * (i + (si + 0.5f) * 0.5f) / static_cast<float>(width) - 1.0f) * aspectRatio,
-                        (2.0f * (j + (sj + 0.5f) * 0.5f) / static_cast<float>(height) - 1.0f),
-                        0.0f
-                    );
-
-                    Ray ray;
-                    ray.orig = cameraCenter;
-                    ray.dir = glm::normalize(sampleCenter - cameraCenter);
-
-                    Hit hit;
-                    bool hitAnything = false;
-                    auto closestDist = std::numeric_limits<float>::infinity();
-
-                    for (const auto& object : objects)
-                    {
-                        Hit tempHit;
-                        if (object->intersect(ray, tempHit) && tempHit.dist < closestDist)
-                        {
-                            closestDist = tempHit.dist;
-                            hit = tempHit;
-                            hitAnything = true;
-                        }
-                    }
-
-                    if (hitAnything)
-                    {
-                        auto hitPoint = ray.orig + hit.dist * ray.dir;
-                        auto N = hit.normal;
-                        auto L = glm::normalize(light.pos - hitPoint);
-                        auto V = glm::normalize(cameraCenter - hitPoint);
-                        auto H = glm::normalize(L + V);
-
-                        // Shadow ray: from hit point toward the light
-                        Ray shadowRay;
-                        shadowRay.orig = hitPoint + N * 1e-4f;
-                        shadowRay.dir = L;
-                        float lightDist = glm::length(light.pos - hitPoint);
-                        bool inShadow = false;
-                        for (const auto& object : objects)
-                        {
-                            Hit shadowHit;
-                            if (object->intersect(shadowRay, shadowHit) && shadowHit.dist < lightDist)
-                            {
-                                inShadow = true;
-                                break;
-                            }
-                        }
-
-                        auto ambient = hit.material.ambient;
-                        glm::vec3 color = ambient;
-                        if (!inShadow)
-                        {
-                            auto diffuse = hit.material.diffuse * light.strength * glm::max(glm::dot(N, L), 0.0f);
-                            auto specular = hit.material.specular * light.strength * glm::pow(glm::max(glm::dot(N, H), 0.0f), hit.material.shininess);
-                            color += diffuse + specular;
-                        }
-                        accum += glm::vec4(color, 1.0f);
-                    }
-                }
-            }
-
-            pixels[j * width + i] = accum * 0.25f;
+            auto color = samplePixel(i, j, width, height, aspectRatio, cameraCenter, light, objects);
+            pixels[j * width + i] = glm::vec4(color, 1.0f);
         }
     }
 

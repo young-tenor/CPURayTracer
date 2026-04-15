@@ -10,7 +10,7 @@ public:
     Triangle(glm::vec3 v0, glm::vec3 v1, glm::vec3 v2, Material material)
         : Object(material), v0(v0), v1(v1), v2(v2) {}
 
-    bool intersect(Ray& ray, Hit& hit) override {
+    bool intersect(const Ray& ray, Hit& hit) override {
         const float epsilon = 1e-6f;
 
         glm::vec3 e1 = v1 - v0;

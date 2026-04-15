@@ -10,6 +10,6 @@ public:
 
     Object(Material material) : material(material) {}
 
-    virtual bool intersect(Ray& ray, Hit& hit) = 0;
+    virtual bool intersect(const Ray& ray, Hit& hit) = 0;
     virtual ~Object() = default;
 };

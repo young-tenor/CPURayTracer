@@ -12,7 +12,7 @@ public:
         : Object(material), center(center), radius(radius) {}
 
     // https://en.wikipedia.org/wiki/Line-sphere_intersection
-    bool intersect(Ray& ray, Hit& hit) override {
+    bool intersect(const Ray& ray, Hit& hit) override {
         glm::vec3 oc = ray.orig - center;
         float a = glm::dot(ray.dir, ray.dir);
         float b = glm::dot(oc, ray.dir);

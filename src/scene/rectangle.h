@@ -15,7 +15,7 @@ public:
           t0(v0, v1, v2, material),
           t1(v0, v2, v3, material) {}
 
-    bool intersect(Ray& ray, Hit& hit) override {
+    bool intersect(const Ray& ray, Hit& hit) override {
         Hit h0, h1;
         bool hit0 = t0.intersect(ray, h0);
         bool hit1 = t1.intersect(ray, h1);
