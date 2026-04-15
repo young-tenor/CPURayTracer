@@ -37,7 +37,7 @@ public:
             vShaderFile.close();
             fShaderFile.close();
             // convert stream into string
-            vertexCode   = vShaderStream.str();
+            vertexCode = vShaderStream.str();
             fragmentCode = fShaderStream.str();
         }
         catch (std::ifstream::failure& e)
@@ -45,7 +45,7 @@ public:
             std::cout << "ERROR::SHADER::FILE_NOT_SUCCESSFULLY_READ: " << e.what() << std::endl;
         }
         const char* vShaderCode = vertexCode.c_str();
-        const char * fShaderCode = fragmentCode.c_str();
+        const char* fShaderCode = fragmentCode.c_str();
         // 2. compile shaders
         unsigned int vertex, fragment;
         // vertex shader

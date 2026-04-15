@@ -11,7 +11,7 @@ public:
         : Object(material), v0(v0), v1(v1), v2(v2) {}
 
     bool intersect(Ray& ray, Hit& hit) override {
-        constexpr float epsilon = 1e-6f;
+        const float epsilon = 1e-6f;
 
         glm::vec3 e1 = v1 - v0;
         glm::vec3 e2 = v2 - v0;

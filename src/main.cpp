@@ -15,18 +15,17 @@
 #include <memory>
 #include <vector>
 
-static constexpr int width  = 1280;
-static constexpr int height = 720;
-static constexpr const char* title = "CPU Ray Tracer";
+static const int width = 1280 * 2;
+static const int height = 720 * 2;
+static const char* title = "CPU Ray Tracer";
 
-static constexpr float quadVertices[] = {
-    // pos          // texCoord
-    -1.0f,  1.0f,  0.0f, 1.0f,
-    -1.0f, -1.0f,  0.0f, 0.0f,
-     1.0f, -1.0f,  1.0f, 0.0f,
-    -1.0f,  1.0f,  0.0f, 1.0f,
-     1.0f, -1.0f,  1.0f, 0.0f,
-     1.0f,  1.0f,  1.0f, 1.0f,
+static const float quadVertices[] = {
+    -1.0f, 1.0f, 0.0f, 1.0f,
+    -1.0f, -1.0f, 0.0f, 0.0f,
+    1.0f, -1.0f, 1.0f, 0.0f,
+    -1.0f, 1.0f, 0.0f, 1.0f,
+    1.0f, -1.0f, 1.0f, 0.0f,
+    1.0f, 1.0f, 1.0f, 1.0f,
 };
 
 static void framebufferSizeCallback(GLFWwindow* /*window*/, int width, int height)
@@ -120,7 +119,7 @@ int main()
 
                     Ray ray;
                     ray.orig = cameraCenter;
-                    ray.dir  = glm::normalize(sampleCenter - cameraCenter);
+                    ray.dir = glm::normalize(sampleCenter - cameraCenter);
 
                     Hit hit;
                     bool hitAnything = false;
