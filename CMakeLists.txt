@@ -25,6 +25,7 @@ add_executable(CPURayTracer
     src/scene/triangle.h
     src/scene/rectangle.h
     src/scene/light.h
+    src/scene/skybox.h
     src/shaders/quad.vert
     src/shaders/quad.frag
 )
@@ -33,6 +34,7 @@ target_include_directories(CPURayTracer PRIVATE src ${Stb_INCLUDE_DIR})
 
 target_compile_definitions(CPURayTracer PRIVATE
     SHADER_DIR="${CMAKE_CURRENT_SOURCE_DIR}/src/shaders/"
+    RESOURCE_DIR="${CMAKE_CURRENT_SOURCE_DIR}/resources/"
 )
 
 target_link_libraries(CPURayTracer PRIVATE

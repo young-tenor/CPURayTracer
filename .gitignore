@@ -5,3 +5,4 @@ out/
 *.suo
 .cache/
 vcpkg_installed/
+resources/

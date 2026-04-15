@@ -10,8 +10,10 @@
 #include "graphics/texture.h"
 #include "graphics/material.h"
 #include "scene/object.h"
+#include "scene/sphere.h"
 #include "scene/rectangle.h"
 #include "scene/light.h"
+#include "scene/skybox.h"
 
 #include <glm/glm.hpp>
 #include <iostream>
@@ -96,28 +98,20 @@ public:
         cameraCenter = glm::vec3(0.0f, 0.0f, 1.0f);
         light.emplace(glm::vec3(0.0f, 1.0f, 1.0f), 1.0f);
         sampler.emplace(Sampler::Wrap::repeat, Sampler::Filter::nearest);
-
-        std::vector<glm::vec3> checkerImage(4 * 4);
-        for (int j = 0; j < 4; j++)
-            for (int i = 0; i < 4; i++)
-                checkerImage[j * 4 + i] = (i + j) % 2 == 0 ? glm::vec3(1.0f) : glm::vec3(0.0f);
-        auto checkerTexture = std::make_shared<Texture>(4, 4, std::move(checkerImage));
-
-        Material material(
-            glm::vec3(0.1f, 0.1f, 0.1f),
-            glm::vec3(0.7f, 0.7f, 0.7f),
-            glm::vec3(0.5f, 0.5f, 0.5f),
-            32.0f,
-            checkerTexture
+        skybox.emplace(
+            RESOURCE_DIR "skybox/posx.jpg", RESOURCE_DIR "skybox/negx.jpg",
+            RESOURCE_DIR "skybox/posy.jpg", RESOURCE_DIR "skybox/negy.jpg",
+            RESOURCE_DIR "skybox/posz.jpg", RESOURCE_DIR "skybox/negz.jpg"
         );
 
-        objects.push_back(std::make_unique<Rectangle>(
-            glm::vec3(-0.5f, -0.5f, 0.0f),
-            glm::vec3(0.5f, -0.5f, 0.0f),
-            glm::vec3(0.5f, 0.5f, 0.0f),
-            glm::vec3(-0.5f, 0.5f, 0.0f),
-            material
-        ));
+        Material material(
+            glm::vec3(0.1f, 0.02f, 0.02f),
+            glm::vec3(0.8f, 0.1f, 0.1f),
+            glm::vec3(1.0f, 0.8f, 0.8f),
+            128.0f,
+            0.5f
+        );
+        objects.push_back(std::make_unique<Sphere>(glm::vec3(0.0f, 0.0f, -1.0f), 0.5f, material));
 
         return true;
     }
@@ -179,6 +173,7 @@ private:
     glm::vec3 cameraCenter = glm::vec3(0.0f);
     std::optional<Light> light;
     std::optional<Sampler> sampler;
+    std::optional<Skybox> skybox;
     std::vector<std::unique_ptr<Object>> objects;
     std::vector<glm::vec4> pixels;
 
@@ -198,7 +193,7 @@ private:
             glfwSetWindowShouldClose(win, GLFW_TRUE);
     }
 
-    glm::vec3 traceRay(const Ray& ray) const
+    glm::vec3 traceRay(const Ray& ray, int depth = 4) const
     {
         Hit hit;
         bool hitAnything = false;
@@ -216,7 +211,7 @@ private:
         }
 
         if (!hitAnything)
-            return glm::vec3(0.0f);
+            return skybox ? skybox->sample(ray.dir) : glm::vec3(0.0f);
 
         auto hitPoint = ray.orig + hit.dist * ray.dir;
         auto N = hit.normal;
@@ -250,6 +245,16 @@ private:
             auto specular = hit.material.specular * light->strength * glm::pow(glm::max(glm::dot(N, H), 0.0f), hit.material.shininess);
             color += diffuse + specular;
         }
+
+        if (hit.material.reflection > 0.0f && depth > 0)
+        {
+            Ray reflectedRay;
+            reflectedRay.orig = hitPoint + N * 1e-4f;
+            reflectedRay.dir = glm::reflect(ray.dir, N);
+            glm::vec3 reflectedColor = traceRay(reflectedRay, depth - 1);
+            color = glm::mix(color, reflectedColor, hit.material.reflection);
+        }
+
         return color;
     }
 
