@@ -164,8 +164,8 @@ public:
     }
 
 private:
-    static const int width = 1280 * 2;
-    static const int height = 720 * 2;
+    static const int width = 1280;
+    static const int height = 720;
 
     GLFWwindow* window = nullptr;
 
