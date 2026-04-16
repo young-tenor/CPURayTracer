@@ -36,11 +36,46 @@ The project renders ray-traced images on the CPU, then displays the result via O
 - **Math**: `glm` for vectors/matrices shared between CPU ray tracer and any GPU-side display work.
 - **Windowing/GL context**: GLFW 3 + GLAD (OpenGL 3.3 Core).
 
-### Planned pipeline (to be built incrementally)
+### Render pipeline
 
-1. CPU ray tracer writes pixel colors into a `float` or `uint8_t` buffer.
-2. Buffer is uploaded to a GL texture each frame (or once, if the image is static).
-3. A full-screen quad shader samples the texture and outputs to the framebuffer.
+1. `App::update()` calls `samplePixel()` for each pixel and writes `glm::vec4` results into a `std::vector<glm::vec4> pixels` buffer.
+2. The buffer is uploaded to a `GL_RGBA32F` texture each frame via `glTexSubImage2D`.
+3. `App::render()` draws a full-screen quad; `quad.vert` / `quad.frag` sample the texture and write to the framebuffer.
+
+### Ray tracing features
+
+- **Perspective projection**: camera at `cameraCenter`, rays directed toward a virtual screen plane. NDC computed per-sample as `(2*(i+0.5)/width - 1) * aspectRatio`.
+- **Supersampling anti-aliasing**: 2×2 grid per pixel (`samplePixel`), averaged (×0.25).
+- **Blinn-Phong shading**: `Material` holds `ambient`, `diffuse`, `specular`, `shininess`. Half-vector `H = normalize(L + V)` used for specular.
+- **Shadow**: shadow ray cast from hit point (offset by `N * 1e-4f`) toward light; occlusion check against all objects within light distance.
+- **Texturing**: `Texture` loads images via `stb_image`. `Sampler` controls wrap (`repeat`/`clamp`) and filter (`nearest`/`linear`). Bilinear interpolation samples a 2×2 texel neighbourhood. UV tiling scale (currently ×4) is applied in `Triangle::intersect`.
+- **Skybox**: `Skybox` holds 6 `Texture` faces (±X, ±Y, ±Z). Cube-map face selection and UV computed per [Wikipedia cube mapping](https://en.wikipedia.org/wiki/Cube_mapping). Miss rays return `skybox->sample(ray.dir)`.
+- **Reflection**: `Material::reflection` ∈ [0, 1]. `traceRay` recurses up to `depth=4`; reflected color blended with surface color via `glm::mix`.
+
+### Source layout
+
+```
+src/
+  main.cpp               — entry point, #define STB_IMAGE_IMPLEMENTATION
+  app.h                  — App class: GL init, render loop, ray tracing logic
+  graphics/
+    ray.h                — Ray { orig, dir }
+    hit.h                — Hit { normal, uv, dist, material }
+    material.h           — Material { ambient, diffuse, specular, shininess, reflection, texture }
+    sampler.h            — Sampler { Wrap::{repeat,clamp}, Filter::{nearest,linear} }
+    texture.h            — Texture: stb_image load, nearest/linear sampling with wrap/clamp
+    shader.h             — Shader: GLSL compile/link helper (no #pragma once — uses include guard)
+  scene/
+    object.h             — Object: abstract base, virtual intersect()
+    sphere.h             — Sphere: analytic ray-sphere intersection, outward normal
+    triangle.h           — Triangle: Möller–Trumbore-style, barycentric UV interpolation
+    rectangle.h          — Rectangle: two Triangle instances, quad UV layout
+    light.h              — Light { pos, strength }
+    skybox.h             — Skybox: 6-face cube map, clamp+linear sampler
+  shaders/
+    quad.vert            — pass-through: pos → gl_Position, aTexCoord → texCoord
+    quad.frag            — samples screenTexture, writes fragColor
+```
 
 ### Coding style
 
