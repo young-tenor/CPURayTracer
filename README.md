@@ -65,3 +65,9 @@ cmake --build --preset windows-msvc-release
 ```
 
 Binary: `build/Release/CPURayTracer.exe`
+
+Press **Escape** to close.
+
+## Credits
+
+- Skybox textures by Emil Persson (Humus) — [http://www.humus.name](http://www.humus.name), licensed under [CC BY 3.0](https://creativecommons.org/licenses/by/3.0/)
